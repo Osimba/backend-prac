@@ -9,6 +9,13 @@ app.use('/', (req, res) => {
 	res.json({ msg : 'It works!' });
     });
 
+app.use('/findToy', (req, res) => {
+
+	var getToy = req.query.id;
+
+	res.json({ msg : 'This worked'});
+});
+
 
 app.listen(3000, () => {
 	console.log('Listening on port 3000');
