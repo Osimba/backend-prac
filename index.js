@@ -1,19 +1,29 @@
 var express = require('express');
 var app = express();
 
-var Animal = require('./Animal.js');
-var Toy = require('./Toy.js');
+//var Animal = require('./Animal.js');
+//var Toy = require('./Toy.js');
 
 
-app.use('/', (req, res) => {
-	res.json({ msg : 'It works!' });
+app.get('/', (req, res) => {
+	//res.json({ msg : 'It works!' });
+	res.write('Hello Worlds this is Osei!');
     });
 
-app.use('/findToy', (req, res) => {
+app.get('/findToys', (req, res) => {
+	res.write('This is the findToys page');
+});
 
-	var getToy = req.query.id;
+app.get('/findAnimals', (req, res) => {
+	res.write('This is the findAnimals page');
+});
 
-	res.json({ msg : 'This worked'});
+app.get('/animalsYoungerThan', (req, res) => {
+	res.write('This is the animalsYoungerThan page');
+});
+
+app.get('/calculatePrice', (req, res) => {
+	res.write('This is the calculatePrice page');
 });
 
 
