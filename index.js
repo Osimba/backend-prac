@@ -8,10 +8,15 @@ var app = express();
 app.get('/', (req, res) => {
 	//res.json({ msg : 'It works!' });
 	res.write('Hello Worlds this is Osei!');
+
     });
 
 app.get('/findToys', (req, res) => {
 	res.write('This is the findToys page');
+	var query = req.query;
+	console.log(query);
+	//fetch name and price from mongo db
+	
 });
 
 app.get('/findAnimals', (req, res) => {
