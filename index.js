@@ -2,7 +2,7 @@ var express = require('express');
 var app = express();
 
 //var Animal = require('./Animal.js');
-//var Toy = require('./Toy.js');
+var Toy = require('./Toy.js');
 
 
 app.get('/', (req, res) => {
@@ -11,12 +11,25 @@ app.get('/', (req, res) => {
 
     });
 
-app.get('/findToys', (req, res) => {
+app.get('/findToy', (req, res) => {
 	res.write('This is the findToys page');
-	var query = req.query;
-	console.log(query);
+	var itemQuery = req.query.id;
+
 	//fetch name and price from mongo db
-	
+	Toy.findOne( { id: itemQuery }, (err, toy) => {
+		if (err) {
+			res.type('html').status(500);
+			res.send('Error: ' + err);
+		}
+		else if (!toy) {
+			res.type('html').status(200);
+			res.send('There is no toy with id ' + itemQuery);
+		}
+		else {
+			//return entire document object
+			console.log(toy);
+		}
+	});
 });
 
 app.get('/findAnimals', (req, res) => {
