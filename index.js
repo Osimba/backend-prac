@@ -77,7 +77,7 @@ app.get('/findAnimals', (req, res) => {
 app.get('/animalsYoungerThan', (req, res) => {
 	//get animals
 	var query = {};
-	if(req.query.age) query.age = { $gt: req.query.age};
+	if(req.query.age) query.age = { $lt: req.query.age};
 
 	Animal.find(query, (err, animals) => {
 		if(err) {
@@ -111,7 +111,43 @@ app.get('/animalsYoungerThan', (req, res) => {
 });
 
 app.get('/calculatePrice', (req, res) => {
-	res.write('This is the calculatePrice page');
+	var query = {};
+	var store = {};
+	var cal = {
+		totalPrice: 0,
+		items: []
+	};
+
+	req.query.id.forEach((a) => {
+		store['req.query.id'] = req.query.qty;
+	});
+
+	if(req.query.id){
+		if(req.query.id.length > 1)	query.id = {'$in': req.query.id};
+		else query.id = req.query.id;
+	}
+	if(req.query.qty){
+		if(req.query.qty.length > 1) query.qty = {'$in': req.query.qty};
+		else query.qty = req.query.qty;
+	}
+
+	Toy.find(query.id, (err, toys) => {
+		if(err){
+			res.type('html').status(500);
+			res.send('Error: ' + err);
+		} else if(!toys){
+			res.type('html').status(200);
+			res.send('There are no toys with id' + req.query.id);
+		} else {
+			toys.forEach((a) => {
+				cal.totalPrice += a.price*query.qty[i];
+				cal.items.push({item: a.name, qty: query.qty[i], subtotal: a.price*query.qty[i]});
+			});
+		}
+
+	});
+
+	res.json(cal);
 });
 
 
