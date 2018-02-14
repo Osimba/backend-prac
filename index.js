@@ -34,7 +34,7 @@ app.get('/findToy', (req, res) => {
 		else if (!toy) {
 			res.type('html').status(200);
 			res.send('There is no toy with id ' + itemQuery);
-			return toy;
+			res.json(toy);
 		}
 		else {
 			//return entire document object
@@ -63,6 +63,11 @@ app.get('/findAnimals', (req, res) => {
 			res.type('html').status(500);
 			res.send('Error: ' + err);
 		}
+		else if (!animals) {
+			res.type('html').status(200);
+			res.send('There are no animals that match the provided query.');
+			res.json(animals);
+		}
 		else {
 			res.json(animals);
 		}
@@ -71,11 +76,36 @@ app.get('/findAnimals', (req, res) => {
 
 app.get('/animalsYoungerThan', (req, res) => {
 	//get animals
+	var query = {};
+	if(req.query.age) query.age = { $gt: req.query.age};
 
-	//set values
-	var animalsObj = {
-		count: 0
-	};
+	Animal.find(query, (err, animals) => {
+		if(err) {
+			res.type('html').status(500);
+			res.send('Error: ' + err);
+		}
+		else if(!animals) {
+			res.type('html').status(200);
+			res.send('There are no animals younger than ' + req.query.age);
+			res.json(animals);
+		}
+		else {
+			//set values
+			var animalsObj = {
+				count: animals.length;
+			};
+			if(animalsObj.count > 0) {
+				animalsObj.name = [];
+
+				animals.forEach((a) => {
+					animalsObj.name.push(a.name);
+				});
+			}
+
+
+		}
+	});
+
 
 
 });
