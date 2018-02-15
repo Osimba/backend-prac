@@ -11,6 +11,7 @@ app.get('/', (req, res) => {
 
 app.get('/findToy', (req, res) => {
 	var itemQuery = req.query.id;
+	var foundToy = {};
 
 	//fetch name and price from mongo db
 	Toy.findOne( { id: itemQuery }, (err, toy) => {
@@ -20,34 +21,49 @@ app.get('/findToy', (req, res) => {
 		}
 		else if (!toy) {
 			res.type('html').status(200);
-			res.send('There is no toy with id ' + itemQuery);
-			res.json(toy);
+			res.json(foundToy);
 		}
 		else {
 			//return entire document object
-			res.json(toy);
+			foundToy = toy;
+			res.json(foundToy);
 		}
 	});
 });
 
 
-	newAnimal.save();
-	console.log('new animal added');
-});
-
 app.get('/findAnimals', (req, res) => {
+	var foundAnimals = {};
+	var query = {};
+	/*if(!(req.query.name || req.query.traits ||
+		req.query.species || req.query.breed ||
+		req.query.gender || req.query.age)){
+			res.json({});
+			return;
+		}*/
+
+	query
 	Animal.find(req.query, (err, animals) => {
+
 		if(err) {
 			res.type('html').status(500);
 			res.send('Error: ' + err);
 		}
 		else if (!animals) {
 			res.type('html').status(200);
-			res.send('There are no animals that match the provided query.');
-			res.json(animals);
+			res.json(foundAnimals);
 		}
 		else {
-			res.json(animals);
+			/*animals.forEach((a) => {
+				foundAnimals.name = a.name;
+				foundAnimals.species = a.species;
+				foundAnimals.breed = a.breed;
+				foundAnimals.gender = a.gender;
+				foundAnimals.age = a.age;
+			});*/
+
+			console.log(animals);
+			//res.json(animals);
 		}
 	});
 });
@@ -55,7 +71,11 @@ app.get('/findAnimals', (req, res) => {
 app.get('/animalsYoungerThan', (req, res) => {
 	//get animals
 	var query = {};
-	if(req.query.age) query.age = { $lt: req.query.age};
+	if(req.query.age && !isNaN(req.query.age)) query.age = { $lt: req.query.age};
+	else {
+		res.json({});
+		return;
+	}
 
 	Animal.find(query, (err, animals) => {
 		if(err) {
@@ -64,7 +84,6 @@ app.get('/animalsYoungerThan', (req, res) => {
 		}
 		else if(!animals) {
 			res.type('html').status(200);
-			res.send('There are no animals younger than ' + req.query.age);
 			res.json(animals);
 		}
 		else {
@@ -82,7 +101,7 @@ app.get('/animalsYoungerThan', (req, res) => {
 			res.json(animalsObj);
 
 		}
-	});
+	}).nin('_id', idsToExclude);
 
 
 
