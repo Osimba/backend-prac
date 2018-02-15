@@ -10,17 +10,17 @@ app.get('/', (req, res) => {
 	res.write('Hello Worlds this is Osei!');
 
     });
-/*
+
 app.get('/addToy', (req, res) => {
 	var newToy = new Toy({
-		id : "123",
-		name : "Dog chew toy",
-		price : 10.99
+		id : "456",
+		name : "Dog pillow",
+		price : 20.99
 	});
 
 	newToy.save();
 	console.log('new toy added');
-});*/
+});
 
 app.get('/findToy', (req, res) => {
 	var itemQuery = req.query.id;
@@ -92,7 +92,7 @@ app.get('/animalsYoungerThan', (req, res) => {
 		else {
 			//set values
 			var animalsObj = {
-				count: animals.length;
+				count: animals.length
 			};
 			if(animalsObj.count > 0) {
 				animalsObj.name = [];
@@ -101,7 +101,7 @@ app.get('/animalsYoungerThan', (req, res) => {
 					animalsObj.name.push(a.name);
 				});
 			}
-
+			console.log(animalsObj);
 
 		}
 	});
@@ -118,20 +118,22 @@ app.get('/calculatePrice', (req, res) => {
 		items: []
 	};
 
-	req.query.id.forEach((a) => {
-		store['req.query.id'] = req.query.qty;
-	});
+	for(var i = 0 ; i < req.query.id.length; i++) {
+		store[req.query.id[i]] = req.query.qty[i];
+	}
+	console.log(store);
 
 	if(req.query.id){
-		if(req.query.id.length > 1)	query.id = {'$in': req.query.id};
+		if(req.query.id.length > 1)	query.id = {"$in": req.query.id};
 		else query.id = req.query.id;
 	}
-	if(req.query.qty){
-		if(req.query.qty.length > 1) query.qty = {'$in': req.query.qty};
+	/*if(req.query.qty){
+		if(req.query.qty.length > 1) query.qty = {"$in": req.query.qty};
 		else query.qty = req.query.qty;
-	}
+	}*/
+	console.log(query);
 
-	Toy.find(query.id, (err, toys) => {
+	Toy.find(query, (err, toys) => {
 		if(err){
 			res.type('html').status(500);
 			res.send('Error: ' + err);
@@ -139,15 +141,19 @@ app.get('/calculatePrice', (req, res) => {
 			res.type('html').status(200);
 			res.send('There are no toys with id' + req.query.id);
 		} else {
+			console.log(toys);
 			toys.forEach((a) => {
-				cal.totalPrice += a.price*query.qty[i];
-				cal.items.push({item: a.name, qty: query.qty[i], subtotal: a.price*query.qty[i]});
+				if(!isNaN(store[a.id]) || store[a.id] >= 1) {
+					cal.totalPrice += a.price*Number(store[a.id]);
+					cal.items.push({item: a.name, qty: store[a.id], subtotal: a.price*Number(store[a.id])});
+				}
 			});
+			console.log(cal);
 		}
 
 	});
 
-	res.json(cal);
+
 });
 
 
