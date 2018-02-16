@@ -35,15 +35,21 @@ app.get('/findToy', (req, res) => {
 app.get('/findAnimals', (req, res) => {
 	var foundAnimals = {};
 	var query = {};
-	/*if(!(req.query.name || req.query.traits ||
+	if(!(req.query.name || req.query.trait ||
 		req.query.species || req.query.breed ||
 		req.query.gender || req.query.age)){
 			res.json({});
 			return;
-		}*/
+		}
+		if(req.query.trait) query.traits = req.query.trait;
+		if(req.query.name) query.name = req.query.name;
+		if(req.query.species) query.species = req.query.species;
+		if(req.query.breed) query.breed = req.query.breed;
+		if(req.query.gender) query.gender = req.query.gender;
+		if(req.query.age) query.age = req.query.age;
 
-	query
-	Animal.find(req.query, (err, animals) => {
+
+	Animal.find(query, (err, animals) => {
 
 		if(err) {
 			res.type('html').status(500);
@@ -54,18 +60,10 @@ app.get('/findAnimals', (req, res) => {
 			res.json(foundAnimals);
 		}
 		else {
-			/*animals.forEach((a) => {
-				foundAnimals.name = a.name;
-				foundAnimals.species = a.species;
-				foundAnimals.breed = a.breed;
-				foundAnimals.gender = a.gender;
-				foundAnimals.age = a.age;
-			});*/
 
-			console.log(animals);
-			//res.json(animals);
+			res.json(animals);
 		}
-	});
+	}).select({"_id": 0, "traits": 0, "__v": 0});
 });
 
 app.get('/animalsYoungerThan', (req, res) => {
@@ -78,30 +76,29 @@ app.get('/animalsYoungerThan', (req, res) => {
 	}
 
 	Animal.find(query, (err, animals) => {
+		var animalsObj = {
+			count: 0
+		};
+
 		if(err) {
 			res.type('html').status(500);
 			res.send('Error: ' + err);
 		}
 		else if(!animals) {
 			res.type('html').status(200);
-			res.json(animals);
+			res.json(animalsObj);
 		}
 		else {
 			//set values
-			var animalsObj = {
-				count: animals.length
-			};
-			if(animalsObj.count > 0) {
-				animalsObj.name = [];
+			animalsObj.name = [];
 
-				animals.forEach((a) => {
-					animalsObj.name.push(a.name);
-				});
-			}
-			res.json(animalsObj);
-
+			animals.forEach((a) => {
+				animalsObj.count++;
+				animalsObj.name.push(a.name);
+			});
 		}
-	}).nin('_id', idsToExclude);
+		res.json(animalsObj);
+	});
 
 
 
@@ -114,15 +111,21 @@ app.get('/calculatePrice', (req, res) => {
 		totalPrice: 0,
 		items: []
 	};
+	var i = 0;
 
-	for(var i = 0 ; i < req.query.id.length; i++) {
-		store[req.query.id[i]] = req.query.qty[i];
+	while(req.query.id[i])
+	{
+		if(store[req.query.id[i]]) store[req.query.id[i]] += Number(req.query.qty[i]);
+		else store[req.query.id[i]] = Number(req.query.qty[i]);
+		i++;
 	}
 
 	if(req.query.id){
-		if(req.query.id.length > 1)	query.id = {"$in": req.query.id};
+		if(i > 1)	query.id = {"$in": req.query.id};
 		else query.id = req.query.id;
 	}
+
+	if(req.query.id.length != req.query.qty.length) res.json({});
 
 
 	Toy.find(query, (err, toys) => {
@@ -131,12 +134,12 @@ app.get('/calculatePrice', (req, res) => {
 			res.send('Error: ' + err);
 		} else if(!toys){
 			res.type('html').status(200);
-			res.send('There are no toys with id' + req.query.id);
+			res.json({});
 		} else {
 			toys.forEach((a) => {
-				if(!isNaN(store[a.id]) || store[a.id] >= 1) {
-					cal.totalPrice += a.price*Number(store[a.id]);
-					cal.items.push({item: a.name, qty: store[a.id], subtotal: a.price*Number(store[a.id])});
+				if(!isNaN(store[a.id]) && store[a.id] >= 1) {
+					cal.totalPrice += a.price*store[a.id];
+					cal.items.push({item: a.id, qty: store[a.id], subtotal: a.price*store[a.id]});
 				}
 			});
 			res.json(cal);
