@@ -41,12 +41,13 @@ app.get('/findAnimals', (req, res) => {
 			res.json({});
 			return;
 		}
-		if(req.query.trait) query.traits = req.query.trait;
+    if(req.query.trait) query.traits = req.query.trait;
 		if(req.query.name) query.name = req.query.name;
 		if(req.query.species) query.species = req.query.species;
 		if(req.query.breed) query.breed = req.query.breed;
 		if(req.query.gender) query.gender = req.query.gender;
 		if(req.query.age) query.age = req.query.age;
+
 
 
 	Animal.find(query, (err, animals) => {
@@ -69,39 +70,32 @@ app.get('/findAnimals', (req, res) => {
 app.get('/animalsYoungerThan', (req, res) => {
 	//get animals
 	var query = {};
-	if(req.query.age && !isNaN(req.query.age)) query.age = { $lt: req.query.age};
+	if(req.query.age && !isNaN(req.query.age)) query.age = {$lt: req.query.age};
 	else {
 		res.json({});
 		return;
 	}
 
-	Animal.find(query, (err, animals) => {
-		var animalsObj = {
-			count: 0
-		};
+  var animalsObj = { count: 0 };
 
+	Animal.find(query, (err, animals) => {
 		if(err) {
 			res.type('html').status(500);
 			res.send('Error: ' + err);
-		}
-		else if(!animals) {
+		} else if(!animals) {
 			res.type('html').status(200);
 			res.json(animalsObj);
-		}
-		else {
+		} else {
 			//set values
-			animalsObj.name = [];
-
-			animals.forEach((a) => {
-				animalsObj.count++;
-				animalsObj.name.push(a.name);
-			});
+			if(animals.length == 0) res.json(animalsObj)
+        else {
+          animalsObj.name = animals.map(a => a.name);
+          animalsObj.count = animals.length;
+          res.json(animalsObj);
+        }
 		}
-		res.json(animalsObj);
+
 	});
-
-
-
 });
 
 app.get('/calculatePrice', (req, res) => {
@@ -111,21 +105,24 @@ app.get('/calculatePrice', (req, res) => {
 		totalPrice: 0,
 		items: []
 	};
-	var i = 0;
 
-	while(req.query.id[i])
-	{
-		if(store[req.query.id[i]]) store[req.query.id[i]] += Number(req.query.qty[i]);
-		else store[req.query.id[i]] = Number(req.query.qty[i]);
-		i++;
-	}
+    if(req.query.id && req.query.qty && req.query.id !== undefined && req.query.qty !== undefined){
+        if(req.query.id.constructor === Array){
+            if(req.query.id.length != req.query.qty.length) res.json({});
 
-	if(req.query.id){
-		if(i > 1)	query.id = {"$in": req.query.id};
-		else query.id = req.query.id;
-	}
+            for(var i = 0; i < req.query.id.length; i++){
+                if(store[req.query.id[i]]) store[req.query.id[i]] += Number(req.query.qty[i]);
+                else store[req.query.id[i]] = Number(req.query.qty[i]);
+            }
 
-	if(req.query.id.length != req.query.qty.length) res.json({});
+            query.id = {"$in": req.query.id};
+        } else query.id = req.query.id;
+
+    } else {
+        res.json({});
+        return;
+    }
+
 
 
 	Toy.find(query, (err, toys) => {
